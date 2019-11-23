@@ -9,7 +9,7 @@ ll inf = 1e18;
 class network_flow{
 private:
 	int N;
-	struct edge{int to; ll cap; int rev;};
+	struct edge{int to; ll cap; int rev; bool is_rev;};
 	vector<vector<edge>> G;
 	vector<int> level,iter;
 	void bfs(int s){
@@ -19,8 +19,7 @@ private:
 		Q.push(s);
 		while(!Q.empty()){
 			int v = Q.front(); Q.pop();
-			for(int i=0;i<G[v].size();i++){
-				edge &e = G[v][i];
+			for(auto& e:G[v]){
 				if(e.cap > 0 && level[e.to]<0){
 					level[e.to] = level[v]+1;
 					Q.push(e.to);
@@ -50,8 +49,8 @@ public:
 		level = iter = vector<int>(N+1);
 	}
 	void add_edge(int from, int to,ll cap){
-		G[from].push_back((edge){to,cap,(int) G[to].size()});
-		G[to].push_back((edge){from,0,(int) G[from].size()-1});
+		G[from].push_back((edge){to,cap,(int) G[to].size(),false});
+		G[to].push_back((edge){from,0,(int) G[from].size()-1,true});
 	}
 	ll max_flow(int s,int t){
 		ll flow = 0;

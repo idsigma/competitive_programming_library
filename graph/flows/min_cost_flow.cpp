@@ -11,7 +11,7 @@ const ll inf = 1e14;
 class min_cost_flow{
 private:
     int N;
-    struct edge{int to; ll cap,cost; int rev;};
+    struct edge{int to; ll cap,cost; int rev; bool is_rev;};
     vector<vector<edge>> G;
     vector<ll> h,dist,prevv,preve;
 public:
@@ -21,8 +21,8 @@ public:
         h = dist = prevv = preve = vector<ll>(N,0);
     }
     void add_edge(int from,int to,ll cap,ll cost){
-        G[from].push_back((edge){to,cap,cost,(int) G[to].size()});
-        G[to].push_back((edge){from,0,-cost,(int) G[from].size()-1});
+        G[from].push_back((edge){to,cap,cost,(int) G[to].size(),false});
+        G[to].push_back((edge){from,0,-cost,(int) G[from].size()-1,true});
     }
     ll answer(int s,int t,ll f){
         ll res = 0;
