@@ -1,8 +1,8 @@
-#include <iostream>
-#include <vector>
-#include <climits>
-#include <functional>
+#include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+template<class T> using vec = vector<T>;
+template<class T> using vvec = vector<vec<T>>;
 
 template<typename Monoid>
 class SegmentTree{
@@ -46,9 +46,57 @@ public:
     Monoid operator[](const int &k)const{
         return seg[k+sz];
     }
+    template< typename C >
+    int find_subtree(int a, const C &check, Monoid &M, bool type) {
+        while(a < sz) {
+            Monoid nxt = type ? op(seg[2 * a + type], M) : op(M, seg[2 * a + type]);
+            if(check(nxt)) a = 2 * a + type;
+            else M = nxt, a = 2 * a + 1 - type;
+        }
+        return a - sz;
+    }
+
+    template< typename C >
+    int find_first(int a, const C &check) {
+        Monoid L = e;
+        if(a <= 0) {
+            if(check(op(L, seg[1]))) return find_subtree(1, check, L, false);
+            return -1;
+        }
+        int b = sz;
+        for(a += sz, b += sz; a < b; a >>= 1, b >>= 1) {
+            if(a & 1) {
+                Monoid nxt = op(L, seg[a]);
+                if(check(nxt)) return find_subtree(a, check, L, false);
+                L = nxt;
+                ++a;
+            }
+        }
+        return -1;
+    }
+
+    template< typename C >
+    int find_last(int b, const C &check) {
+        Monoid R = e;
+        if(b >= sz) {
+            if(check(op(seg[1], R))) return find_subtree(1, check, R, true);
+            return -1;
+        }
+        int a = sz;
+        for(b += sz; a < b; a >>= 1, b >>= 1) {
+            if(b & 1) {
+                Monoid nxt = op(seg[--b], R);
+                if(check(nxt)) return find_subtree(b, check, R, true);
+                R = nxt;
+            }
+        }
+        return -1;
+    }
 };
 
 int main(){
+    cin.tie(0);
+    ios::sync_with_stdio(false);
     int N,Q;
     cin >> N >> Q;
     SegmentTree<int> 

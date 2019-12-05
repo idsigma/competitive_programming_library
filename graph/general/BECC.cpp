@@ -3,22 +3,25 @@
 #include <stack>
 #include <algorithm>
 using namespace std;
-typedef pair<int,int> P;
+using P = pair<int,int>;
+template<class T> using vec = vector<T>;
+template<class T> using vvec = vector<vec<T>>;
 
 class BECC{
 private:
     int N;
-    vector<vector<int>> G,dcmp;
-    vector<int> order,inS;
+    vvec<int> G;
+    vec<int> order,inS;
     stack<int> S,roots;
-    vector<int> cmp;
+    vec<int> cmp;
 public:
-    vector<P> bridge;
-    vector<vector<int>> bccs;
-    BECC(int n,vector<vector<int>> graph){
+    vec<P> bridge;
+    vvec<int> bccs;
+    vvec<int> dcmp;
+    BECC(int n,vvec<int> graph){
         N = n;
         G = graph;
-        order = inS = cmp = vector<int>(N+1,0);
+        order = inS = cmp = vec<int>(N,0);
     }
     void dfs(int cur,int prev,int k){
         order[cur] = ++k; //訪問順に番号付け
@@ -32,11 +35,11 @@ public:
         }
         if(cur==roots.top()){
             if(prev!=-1) bridge.emplace_back(prev,cur);//根でないなら橋になる
-            vector<int> bcc;
+            vec<int> bcc;
             while(true){
                 int node = S.top(); S.pop(); inS[node] = false;//nodeを捨てる
                 bcc.emplace_back(node);//nodeをbccに追加
-                cmp[node] = bccs.size()+1;
+                cmp[node] = bccs.size();
                 if(node==cur) break;
             }
             bccs.emplace_back(bcc);
@@ -45,14 +48,14 @@ public:
     }
     void bridge_detection(){
         int k = 0;
-        for(int i=1;i<=N;i++) if(order[i]==0) dfs(i,-1,k);
+        for(int i=0;i<N;i++) if(order[i]==0) dfs(i,-1,k);
     }
     int find(int n){return cmp[n];}
     int cmp_size(int n){return bccs[cmp[n]].size();}
     void decomposition(){
         int k = 0;
-        for(int i=1;i<=N;i++) if(order[i]==0) dfs(i,-1,k);
-        dcmp = vector<vector<int>>(bccs.size()+1);
+        for(int i=0;i<N;i++) if(order[i]==0) dfs(i,-1,k);
+        dcmp = vvec<int>(bccs.size()+1);
         for(auto x:bridge){
             dcmp[cmp[x.first]].push_back(cmp[x.second]);
             dcmp[cmp[x.second]].push_back(cmp[x.first]);
@@ -67,7 +70,6 @@ int main(){
     int a,b;
     for(int i=0;i<M;i++){
         cin >> a >> b;
-        a++; b++;
         v[a].push_back(b);
         v[b].push_back(a);
     }
@@ -75,5 +77,5 @@ int main(){
     becc.bridge_detection();
     for(auto& x:becc.bridge) if(x.first>x.second) swap(x.first,x.second);
     sort(becc.bridge.begin(),becc.bridge.end());
-    for(auto& x:becc.bridge) cout << --x.first << " " << --x.second << endl;
+    for(auto& x:becc.bridge) cout << x.first << " " << x.second << endl;
 }

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 using namespace std;
-typedef long long ll;
+using ll = long long;
 
 const ll mod = 998244353;
 struct mint {

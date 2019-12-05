@@ -4,6 +4,9 @@
 #include <cmath>
 using namespace std;
 
+using ll = long long;
+template<class T> using vec = vector<T>;
+template<class T> using vvec = vector<vec<T>>;
 namespace FastFourierTransform {
   using real = double;
 
@@ -102,3 +105,12 @@ namespace FastFourierTransform {
     return ret;
   }
 };
+
+int main(){
+  int N;
+  cin >> N;
+  vec<int> A(N+1),B(N+1);
+  for(int i=1;i<=N;i++) cin >> A[i] >> B[i];
+  auto C = FastFourierTransform::multiply(A,B);
+  for(int i=1;i<=2*N;i++) cout << C[i] << endl;
+}

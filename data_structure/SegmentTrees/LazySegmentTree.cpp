@@ -1,118 +1,200 @@
 #include <iostream>
 #include <vector>
-#include <climits>
 #include <functional>
 using namespace std;
-typedef long long ll;
-template<typename Monoid, typename OpMonoid = Monoid>
-class LazySegmentTree{
-private:
-    using F = function<Monoid(Monoid, Monoid)>;
-    using G = function<Monoid(Monoid,OpMonoid)>;
-    using H = function<OpMonoid(OpMonoid,OpMonoid)>;
-    using P = function<OpMonoid(OpMonoid,int)>;
-    int sz;
-    vector<Monoid> data;
-    vector<OpMonoid> lazy;
-    const F func;
-    const G op;
-    const H mergeOp;
-    const P multmergeOp;
-    const Monoid e;
-    const OpMonoid op_e;
-public:
-    LazySegmentTree(int n, const F f, const G g, const H h, const P p,
-    const Monoid &e, const OpMonoid op_e)
-    :func(f), op(g), mergeOp(h), multmergeOp(p), e(e), op_e(op_e){
-        sz = 1;
-        while(sz<n) sz <<= 1;
-        data.assign(2*sz,e);
-        lazy.assign(2*sz,op_e);
+using ll = long long;
+template<class T> using vec = vector<T>;
+template<class T> using vvec = vector<vec<T>>;
+
+template< typename Monoid, typename OperatorMonoid = Monoid >
+struct LazySegmentTree {
+  using F = function< Monoid(Monoid, Monoid) >;
+  using G = function< Monoid(Monoid, OperatorMonoid) >;
+  using H = function< OperatorMonoid(OperatorMonoid, OperatorMonoid) >;
+
+  int sz, height;
+  vector< Monoid > data;
+  vector< OperatorMonoid > lazy;
+  const F f;
+  const G g;
+  const H h;
+  const Monoid M1;
+  const OperatorMonoid OM0;
+
+
+  LazySegmentTree(int n, const F f, const G g, const H h,
+                  const Monoid &M1, const OperatorMonoid OM0)
+      : f(f), g(g), h(h), M1(M1), OM0(OM0) {
+    sz = 1;
+    height = 0;
+    while(sz < n) sz <<= 1, height++;
+    data.assign(2 * sz, M1);
+    lazy.assign(2 * sz, OM0);
+  }
+
+  void set(int k, const Monoid &x) {
+    data[k + sz] = x;
+  }
+
+  void build() {
+    for(int k = sz - 1; k > 0; k--) {
+      data[k] = f(data[2 * k + 0], data[2 * k + 1]);
     }
-    //初期化
-    void set(int k, const Monoid &x){
-        data[k+sz] = x;
+  }
+
+  inline void propagate(int k) {
+    if(lazy[k] != OM0) {
+      lazy[2 * k + 0] = h(lazy[2 * k + 0], lazy[k]);
+      lazy[2 * k + 1] = h(lazy[2 * k + 1], lazy[k]);
+      data[k] = reflect(k);
+      lazy[k] = OM0;
     }
-    //前計算
-    void build(){
-        for(int k=sz-1;k>0;k--){
-            data[k] = func(data[2*k],data[2*k+1]);
-        }
+  }
+
+  inline Monoid reflect(int k) {
+    return lazy[k] == OM0 ? data[k] : g(data[k], lazy[k]);
+  }
+
+  inline void recalc(int k) {
+    while(k >>= 1) data[k] = f(reflect(2 * k + 0), reflect(2 * k + 1));
+  }
+
+  inline void thrust(int k) {
+    for(int i = height; i > 0; i--) propagate(k >> i);
+  }
+
+  void update(int a, int b, const OperatorMonoid &x) {
+    thrust(a += sz);
+    thrust(b += sz - 1);
+    for(int l = a, r = b + 1; l < r; l >>= 1, r >>= 1) {
+      if(l & 1) lazy[l] = h(lazy[l], x), ++l;
+      if(r & 1) --r, lazy[r] = h(lazy[r], x);
     }
-    //kの子に長さlenの遅延を伝搬
-    void propagate(int k, int len){
-        if(lazy[k]!=op_e){
-            if(k<sz){
-                //遅延を下の段に伝搬、結果を分割する
-                lazy[2*k] = mergeOp(lazy[2*k],lazy[k]);
-                lazy[2*k+1] = mergeOp(lazy[2*k+1],lazy[k]);
-            }
-            data[k] = op(data[k],multmergeOp(lazy[k],len));
-            lazy[k] = op_e;
-        }
+    recalc(a);
+    recalc(b);
+  }
+
+  Monoid query(int a, int b) {
+    thrust(a += sz);
+    thrust(b += sz - 1);
+    Monoid L = M1, R = M1;
+    for(int l = a, r = b + 1; l < r; l >>= 1, r >>= 1) {
+      if(l & 1) L = f(L, reflect(l++));
+      if(r & 1) R = f(reflect(--r), R);
     }
-    //更新
-    Monoid update(int a, int b, const OpMonoid &x, int k, int l, int r){
-        propagate(k,r-l);
-        if(r<=a || b<=l) return data[k];
-        else if(a<=l && r<=b){
-            lazy[k] = mergeOp(lazy[k],x);
-            propagate(k,r-l);
-            return op(data[k],multmergeOp(lazy[k],r-l));
-        }else{
-            return data[k] = func(update(a,b,x,2*k,l,(l+r)>>1),update(a,b,x,2*k+1,(l+r)>>1,r));
-        }
+    return f(L, R);
+  }
+
+  Monoid operator[](const int &k) {
+    return query(k, k + 1);
+  }
+
+  template< typename C >
+  int find_subtree(int a, const C &check, Monoid &M, bool type) {
+    while(a < sz) {
+      propagate(a);
+      Monoid nxt = type ? f(reflect(2 * a + type), M) : f(M, reflect(2 * a + type));
+      if(check(nxt)) a = 2 * a + type;
+      else M = nxt, a = 2 * a + 1 - type;
     }
-    Monoid update(int a, int b, const OpMonoid &x){
-        a += sz; b += sz-1;
-        for(int i=height;i>0;i--) propagate(a>>i,1<<(height-i)),propagate(b>>i,1<<(height-i));
-        b++;
-        Monoid res1 = e,res2 = e;
-        while(a<b){
-            if(a&1) res1 = func(res1,op(data[a],lazy[a])),a++;
-            if(b&1) b--,res2 = func(res2,op(data[b],lazy[b]));
-            a >>= 1; b >>= 1;
-        }
-        return func(res1,res2);
-//        return update(a,b,x,1,0,sz);
+    return a - sz;
+  }
+
+  template< typename C >
+  int find_first(int a, const C &check) {
+    Monoid L = M1;
+    if(a <= 0) {
+      if(check(f(L, reflect(1)))) return find_subtree(1, check, L, false);
+      return -1;
     }
-    //クエリ回答
-    Monoid query(int a, int b, int k, int l, int r){
-        propagate(k,r-l);
-        if(r<=a || b<=l){
-            return e;
-        }else if(a<=l && r<=b){
-            return data[k];
-        }else{
-            return func(query(a,b,2*k,l,(l+r)>>1),query(a,b,2*k+1,(l+r)>>1,r));
-        }
+    thrust(a + sz);
+    int b = sz;
+    for(a += sz, b += sz; a < b; a >>= 1, b >>= 1) {
+      if(a & 1) {
+        Monoid nxt = f(L, reflect(a));
+        if(check(nxt)) return find_subtree(a, check, L, false);
+        L = nxt;
+        ++a;
+      }
     }
-    Monoid query(int a, int b){
-        return query(a,b,1,0,sz);
+    return -1;
+  }
+
+
+  template< typename C >
+  int find_last(int b, const C &check) {
+    Monoid R = M1;
+    if(b >= sz) {
+      if(check(f(reflect(1), R))) return find_subtree(1, check, R, true);
+      return -1;
     }
-    Monoid operator[](const int &k){
-        return query(k,k+1);
+    thrust(b + sz - 1);
+    int a = sz;
+    for(b += sz; a < b; a >>= 1, b >>= 1) {
+      if(b & 1) {
+        Monoid nxt = f(reflect(--b), R);
+        if(check(nxt)) return find_subtree(b, check, R, true);
+        R = nxt;
+      }
     }
+    return -1;
+  }
 };
 
-
 int main(){
-    int N,Q;
-    cin >> N >> Q;
-    auto func = [](ll a, ll b){return min(a,b);};
-    auto op = [](ll a, ll b){return (b!=INT_MAX? b:a);};
-    auto multmergeop = [](ll a, ll b){return a;};
-    LazySegmentTree<ll,ll>
-    seg(N,func,op,op,multmergeop,INT_MAX,INT_MAX);
-    for(int i=0;i<Q;i++){
-        ll c,s,t,x;
-        cin >> c;
-        if(c==0){
-            cin >> s >> t >> x;
-            seg.update(s,t+1,x);
+    int N;
+    cin >> N;
+    string S;
+    cin >> S;
+    int n = 0,d = 0;
+    for(int i=0;i<N;i++){
+        if(S[i]=='R') d++;
+        if(S[i]=='L') d = max(0,d-1);
+        n = max(n,d);
+    }
+    int inf = 1e9;
+    auto add = [](int a,int b){return a+b;};
+    auto mult = [](int a,int b){return a;};
+    LazySegmentTree<int,int> segmin(n+1,[](int a,int b){return min(a,b);},
+    add,add,inf,0);
+    LazySegmentTree<int,int> segmax(n+1,[](int a,int b){return max(a,b);},
+    add,add,-inf,0);
+    for(int i=0;i<n+1;i++){
+        segmin.set(i,0); segmax.set(i,0);
+    }
+    segmin.build(); segmax.build();
+    vec<char> C(n+1,' ');
+    vec<int> ans(N);
+    int id = 0,eid = 0;
+    for(int i=0;i<N;i++){
+        if(S[i]=='L') id = max(0,id-1);
+        else if(S[i]=='R') id++;
+        else if(C[id]!=S[i]){
+            if(C[id]=='('){
+                segmin.update(id,n+1,-1);
+                segmax.update(id,n+1,-1);
+            }
+            if(C[id]==')'){
+                segmin.update(id,n+1,1);
+                segmax.update(id,n+1,1);
+            }
+            C[id] = S[i];
+            if(C[id]=='('){
+                segmin.update(id,n+1,1);
+                segmax.update(id,n+1,1);
+            }
+            if(C[id]==')'){
+                segmin.update(id,n+1,-1);
+                segmax.update(id,n+1,-1);
+            }
+        }
+        eid = max(eid,id);
+        int mi = segmin.query(0,eid+1);
+        if(mi<0 || segmin[n]!=0){
+            ans[i] = -1;
         }else{
-            cin >> s;
-            cout << seg.query(s,s+1) << endl;
+            ans[i] = segmax.query(0,eid+1);
         }
     }
+    for(int i=0;i<N;i++) cout << ans[i] << (i!=N-1? " ":"\n");
 }
