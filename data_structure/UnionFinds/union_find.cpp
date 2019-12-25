@@ -11,8 +11,8 @@ public:
 	UnionFind(){}
 	UnionFind(int N){
 		cnt = N;
-		p = s = vector<int>(N+1,0);
-		for(int i=0;i<=N;i++){
+		p = s = vector<int>(N,0);
+		for(int i=0;i<N;i++){
 			p[i] = i; s[i] = 1;
 		}
 	}

@@ -63,13 +63,12 @@ struct Q{
     }
 };
 
-struct compress{
+struct Compress{
     map<ll,int> idx;
     map<int,ll> value;
     vector<ll> cmp;
     int N;
-    compress(vector<ll> v){
-        cmp.push_back(0);
+    Compress(vector<ll> v){
         for(auto& x:v) cmp.push_back(x);
         sort(cmp.begin(),cmp.end());
         cmp.erase(unique(cmp.begin(),cmp.end()),cmp.end());
@@ -91,11 +90,11 @@ int main(){
         q[i] = {l,r,c};
     }
     sort(q.begin(),q.end());
-    vec<ll> v;
+    vec<ll> v = {0};
     for(auto& x:q){
         v.push_back(x.l); v.push_back(x.r);
     }
-    compress cmp(v);
+    Compress cmp(v);
     int n = cmp.N;
     ll inf = 1e18;
     SegmentTree<ll> seg(n,[](ll a,ll b){return max(a,b);},-inf);

@@ -3,7 +3,7 @@
 using namespace std;
 using ll = long long;
 
-const ll mod = 998244353;
+constexpr ll mod = 998244353;
 struct mint {
     ll x;
     mint(ll x=0):x((x%mod+mod)%mod){}

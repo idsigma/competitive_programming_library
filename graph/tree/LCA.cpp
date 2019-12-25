@@ -7,6 +7,7 @@ private:
 	vector<vector<int>> v;
 	vector<vector<int>> parent;
 	vector<int> depth;
+	int h = 0;
 	void dfs(int n,int m,int d){
 		parent[0][n] = m;
 		depth[n] = d;
@@ -16,11 +17,12 @@ private:
 	}
 public:
 	LCA(int N,int root,vector<vector<int>>& tree){
+		while((1<<h)<=N) h++;
 		v = tree;
-		parent = vector<vector<int>>(20,vector<int>(N,0));
+		parent = vector<vector<int>>(h,vector<int>(N,0));
 		depth = vector<int>(N,0);
 		dfs(root,-1,0);
-		for(int j=0;j+1<20;j++){
+		for(int j=0;j+1<h;j++){
 			for(int i=0;i<N;i++){
 				if(parent[j][i]<0) parent[j+1][i] = -1;
 				else parent[j+1][i] = parent[j][parent[j][i]];
@@ -29,11 +31,11 @@ public:
 	}
 	int lca(int n,int m){
 		if(depth[n]>depth[m]) swap(n,m);
-		for(int j=0;j<20;j++){
+		for(int j=0;j<h;j++){
 			if((depth[m]-depth[n]) >> j&1) m = parent[j][m];
 		}
 		if(n==m) return n;
-		for(int j=19;j>=0;j--){
+		for(int j=h-1;j>=0;j--){
 			if(parent[j][n]!=parent[j][m]){
 				n = parent[j][n];
 				m = parent[j][m];

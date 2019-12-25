@@ -1,7 +1,4 @@
-#include <iostream>
-#include <vector>
-#include <climits>
-#include <functional>
+#include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
 template<class T> using vec = vector<T>;
@@ -49,6 +46,10 @@ public:
     Monoid operator[](const int &k)const{
         return seg[k+sz];
     }
+
+    int gets(){return sz;}
+
+    Monoid getseg(int i){return seg[i];}
 };
 
 struct state{
@@ -72,13 +73,12 @@ int main(){
         if(c==0){
             int s,t,x;
             cin >> s >> t >> x;
-            seg.update(s,(state){seg[s].sum+x,seg[s].mi});
-            seg.update(t+1,(state){seg[t+1].sum-x,seg[t+1].mi});
+            seg.update(s,(state){seg[s].sum+x,seg[s].mi+x});
+            seg.update(t+1,(state){seg[t+1].sum-x,seg[t+1].mi-x});
         }else{
             int s,t;
             cin >> s >> t;
-            t++;
-            cout << seg.query(0,s+1).sum+seg.query(s+1,t+1).mi << endl;
+            cout << seg.query(0,s).sum+seg.query(s,t+1).mi << endl;
         }
     }
 }

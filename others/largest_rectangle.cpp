@@ -7,7 +7,7 @@ typedef long long ll;
 typedef pair<ll,ll> P;
 
 //A[N] = 0にしておく
-ll solve(vector<ll>& A){
+ll largest_rectangle(vector<ll>& A){
     int N = A.size()-1;
     ll ans = 0;
     stack<P> s;
@@ -28,6 +28,6 @@ int main(){
     while(scanf("%d",&N) && N){
         vector<ll> A(N+1,0);
         for(int i=0;i<N;i++) scanf("%lld",&A[i]);
-        printf("%lld\n",solve(A));
+        printf("%lld\n",largest_rectangle(A));
     }
 }
