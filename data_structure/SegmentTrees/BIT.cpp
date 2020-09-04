@@ -2,6 +2,7 @@
 #include <vector>
 using namespace std;
 typedef long long ll;
+
 class BIT{
 private:
     vector<ll> bit;
@@ -42,7 +43,7 @@ public:
     }
 };
 
-int q,com,x,y;
+int n,q,com,x,y;
 
 int main(){
 	cin >> n >> q;

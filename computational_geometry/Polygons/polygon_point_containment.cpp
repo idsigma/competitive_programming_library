@@ -1,19 +1,22 @@
-#include <iostream>
-#include <complex>
-#include <cmath>
-#include <iomanip>
-#include <vector>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
-typedef complex<double> xy;
-double eps = 1e-9;
+using ll = long long;
+template<class T,class U> using P = pair<T,U>;
+template<class T> using vec = vector<T>;
+template<class T> using vvec = vector<vec<T>>;using xy = complex<double>;
+#define x real()
+#define y imag()
+constexpr double eps = 1e-9;
+
 double dot_product(xy a,xy b) {return (conj(a)*b).real();}
 double cross_product(xy a,xy b) {return (conj(a)*b).imag();}
+
 double dist_lp(xy a1,xy a2,xy p){
     if(dot_product(a2-a1,p-a1)<eps) return abs(p-a1);
     if(dot_product(a1-a2,p-a2)<eps) return abs(p-a2);
     return abs(cross_product(a2-a1,p-a1))/abs(a2-a1);
 }
+
 xy projection(xy p,xy b) {return b*dot_product(p,b)/norm(b);}
 xy projection2(xy p1,xy p2,xy p){
     p -= p1; p2 -= p1;
@@ -64,10 +67,25 @@ int N;
 vector<xy> v;
 int main(){
     cin >> N;
-    double x,y;
+    double a,b;
     for(int i=0;i<N;i++){
-        cin >> x >> y;
-        v.push_back(xy(x,y));
+        cin >> a >> b;
+        v.push_back(xy(a,b));
     }
-    cout << (is_convex(v)? 1:0) << endl;
+    int Q;
+    cin >> Q;
+    for(int _=0;_<Q;_++){
+        int a,b;
+        cin >> a >> b;
+        bool ok = false;
+        for(int i=0;i<N;i++){
+            if(is_online(v[i],v[(i+1)%N],xy(a,b))){
+                ok = true;
+            }
+        }
+        if(ok) cout << 1 << endl;
+        else{
+
+        }
+    }
 }

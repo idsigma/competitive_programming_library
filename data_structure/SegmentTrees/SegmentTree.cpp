@@ -9,8 +9,8 @@ class SegmentTree{
 private:
     int sz;
     vector<Monoid> seg;
-    const F op;//演算
-    const Monoid e;//単位元
+    const F op;
+    const Monoid e;
 public:
     SegmentTree(int n,const F op,const Monoid &e):op(op),e(e){
         sz = 1;
@@ -97,8 +97,7 @@ int main(){
     int N,Q;
     cin >> N >> Q;
     auto op = [](int a,int b){return min(a,b);};
-    SegmentTree<int,decltype(op)> 
-    seg(N,op,INT_MAX);
+    SegmentTree seg(N,op,INT_MAX);
     for(int i=0;i<Q;i++){
         int c,x,y;
         cin >> c >> x >> y;

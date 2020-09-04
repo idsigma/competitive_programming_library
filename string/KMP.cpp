@@ -1,63 +1,58 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <set>
+#include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+template<class T,class U> using P = pair<T,U>;
+template<class T> using vec = vector<T>;
+template<class T> using vvec = vector<vec<T>>;
+
+vec<int> KMP(string S){
+    int M = S.size();
+    vec<int> kmp(M+1,0);
+    int i = 0,j = kmp[0] = -1;
+    while(i<M){
+        while(j>-1 && S[i]!=S[j]) j = kmp[j];
+        i++; j++;
+        if(S[i]==S[j]) kmp[i] = kmp[j];
+        else kmp[i] = j;
+    }
+    return kmp;
+};
+
+int calcne(string& S,vec<int>& kmpnext,int pos,char c){
+    while(pos>-1 && c!=S[pos]) pos = kmpnext[pos];
+    return pos+1;
+}
 
 int main(){
-    int N;
-    string S;
-    cin >> N >> S;
-    vector<int> cnt(26);
-    for(int i=0;i<N;i++){
-        cnt[S[i]-'a']++;
-    }
-    bool judge = false;
-    for(int i=0;i<26;i++) if(cnt[i]>1) judge = true;
-    if(!judge){
-        cout << 0 << endl;
-        return 0;
-    }
-    auto prekmp = [&](string x,int m,vector<int>& kmpnext){
-        int i = 0,j = kmpnext[0] = -1;
-        while(i<m){
-            while(j>-1 && x[i]!=x[j]) j = kmpnext[j];
-            i++; j++;
-            if(x[i]==x[j]) kmpnext[i] = kmpnext[j];
-            else kmpnext[i] = j;
+    cin.tie(0);
+    ios::sync_with_stdio(false);
+    string S,T;
+    cin >> S >> T;
+    int N = S.size(),M = T.size();
+    vvec<int> ne(M+1,vec<int>(26,-1));
+    vec<int> kmp = KMP(T);
+    for(int i=0;i<=M;i++){
+        for(char c='a';c<='z';c++){
+            if(i==0) ne[i][c-'a'] = (c==T[0]? 1:0);
+            else ne[i][c-'a'] = calcne(T,kmp,i,c);
         }
-    };
-    auto KMP = [&](string x,int m,string y,int n){
-        vector<int> kmpnext(m+1);
-        int i = 0,j = 0;
-        prekmp(x,m,kmpnext);
-        while(j<n){
-            while(i>-1 && x[i]!=y[j]) i = kmpnext[i];
-            i++; j++;
-            if(i>=m){
-                i = kmpnext[i];
-                return true;
+    }
+    
+    vvec<int> dp(N+1,vec<int>(M+1,-1));
+    dp[0][0] = 0;
+    for(int i=0;i<N;i++) for(int j=0;j<=M;j++){
+        if(dp[i][j]==-1) continue;
+        if(S[i]!='?'){
+            int nj = ne[j][S[i]-'a'];
+            dp[i+1][nj] = max(dp[i+1][nj],dp[i][j]+(nj==M));
+        }else{
+            for(int k=0;k<26;k++){
+                int nj = ne[j][k];
+                dp[i+1][nj] = max(dp[i+1][nj],dp[i][j]+(nj==M));
             }
         }
-        return false;
-    };
-    auto ok = [&](int len){
-        bool res = false;
-        for(int i=0;i<=N-2*len;i++){
-            string now = S.substr(i,len);
-            string ne = "";
-            for(int j=i+len;j<N;j++) ne += S[j];
-            if(len>ne.size()) continue;
-            res |= KMP(now,now.size(),ne,ne.size());
-            if(res) return res;
-        }
-        return res;
-    };
-    int l = 0,r = N;
-    while(l+1<r){
-        int m = (l+r)/2;
-        if(ok(m)) l = m;
-        else r = m;
-    } 
-    cout << l << endl;
+    }
+    int ans = 0;
+    for(int j=0;j<=M;j++) ans = max(ans,dp[N][j]);
+    cout << ans << endl;
 }

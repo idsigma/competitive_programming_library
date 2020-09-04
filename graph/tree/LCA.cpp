@@ -2,7 +2,7 @@
 #include <vector>
 using namespace std;
 
-class LCA{
+class LeastCommonAncestor{
 private:
 	vector<vector<int>> v;
 	vector<vector<int>> parent;
@@ -16,7 +16,7 @@ private:
 		}
 	}
 public:
-	LCA(int N,int root,vector<vector<int>>& tree){
+	LeastCommonAncestor(int N,int root,vector<vector<int>>& tree){
 		while((1<<h)<=N) h++;
 		v = tree;
 		parent = vector<vector<int>>(h,vector<int>(N,0));
@@ -45,6 +45,7 @@ public:
 	}
 	int dep(int n){return depth[n];}
 };
+
 int N,Q,x,y,a,b;
 
 int main(){
@@ -60,7 +61,7 @@ int main(){
 			tree[c].push_back(i);
 		}
 	}
-	LCA lca(N,0,tree);
+	LeastCommonAncestor lca(N,0,tree);
 	cin >> Q;
 	for(int i=0;i<Q;i++){
 		cin >> a >> b;

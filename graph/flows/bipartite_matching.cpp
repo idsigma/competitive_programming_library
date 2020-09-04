@@ -1,17 +1,22 @@
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <string.h>
+#include <bits/stdc++.h>
 using namespace std;
-typedef long long ll;
+using ll = long long;
+template <class T, class U> using Pa = pair<T, U>;
+template <class T> using vec = vector<T>;
+template <class T> using vvec = vector<vec<T>>;
 ll inf = 1e18;
 
 class network_flow{
 private:
 	int N;
-	struct edge{int to; ll cap; int rev;};
-	vector<vector<edge>> G;
-	vector<int> level,iter;
+	struct edge{
+		int to;
+		ll cap;
+		int rev;
+		bool is_rev;
+	};
+	vvec<edge> G;
+	vec<int> level,iter;
 	void bfs(int s){
 		for(int i=0;i<=N;i++) level[i] = -1;
 		queue<int> Q;
@@ -46,12 +51,12 @@ private:
 public:
 	network_flow(int n){
 		N = n;
-		G = vector<vector<edge>>(N+1);
-		level = iter = vector<int>(N+1);
+		G = vvec<edge>(N+1);
+		level = iter = vec<int>(N+1);
 	}
 	void add_edge(int from, int to,ll cap){
-		G[from].push_back((edge){to,cap,(int) G[to].size()});
-		G[to].push_back((edge){from,0,(int) G[from].size()-1});
+		G[from].push_back((edge){to,cap,(int) G[to].size(),false});
+		G[to].push_back((edge){from,0,(int) G[from].size()-1,true});
 	}
 	ll max_flow(int s,int t){
 		ll flow = 0;
@@ -63,20 +68,31 @@ public:
 			while((f=dfs(s,t,inf))>0) flow += f;
 		}
 	}
+	vec<Pa<int,int>> maximum_bipartite_mathing(int L,int R,vec<Pa<int,int>>& E){
+		for(int i=1;i<=L;i++) add_edge(0,i,1);
+		for(int i=1;i<=R;i++) add_edge(L+i,N,1);
+		for(auto& p:E) add_edge(p.first,L+p.second,1);
+		int s = max_flow(0,N);
+		vec<Pa<int,int>> res;
+		for(int i=1;i<=L;i++){
+			for(auto& e:G[i]) if(!e.is_rev && !e.cap) res.emplace_back(i,e.to-L);
+		}
+		return res;
+	}
 };
 
-int X,Y,E;
 
 int main(){
-	cin >> X >> Y >> E;
-	network_flow flow(X+Y+2);
-    int x,y;
-    for(int i=1;i<=X;i++) flow.add_edge(0,i,1);
-    for(int i=1;i<=Y;i++) flow.add_edge(X+i,X+Y+1,1);
-    for(int i=0;i<E;i++){
-		cin >> x >> y;
-        x++; y++;
-		flow.add_edge(x,X+y,1);
+	int L,R,M;
+	cin >> L >> R >> M;
+	network_flow flow(L+R+2);
+	vec<Pa<int,int>> E;
+	for(int i=0;i<M;i++){
+		int a,b;
+		cin >> a >> b;
+		E.emplace_back(a+1,b+1);
 	}
-	cout << flow.max_flow(0,X+Y+1) << endl;
+	auto res = flow.maximum_bipartite_mathing(L,R,E);
+	cout << res.size() << "\n";
+	for(auto& e:res) cout << e.first-1 << " " << e.second-1 << "\n";
 }

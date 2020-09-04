@@ -141,6 +141,7 @@ public:
         g(in[u]+isedge,in[v]+1,x);
     }
 
+
     template<class T,class F,class Q>
     T query(int u,int v,const T &e,const F& f,const Q& q,bool isedge=false){
         T l = e,r = e;
@@ -152,9 +153,10 @@ public:
             l = f(q(in[head[v]],in[v]+1),l);
             v = par[head[v]];
         }
+        //非可換演算のときは左を反転！
+        //f(rev(f(q(a,b),l),r);
         return f(f(q(in[u]+isedge,in[v]+1),l),r);
     }
-
 };
 
 int main(){

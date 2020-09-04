@@ -1,20 +1,18 @@
-#include <iostream>
-#include <vector>
-#include <map>
+#include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
+template<class T,class U> using Pa = pair<T,U>;
+template<class T> using vec = vector<T>;
+template<class T> using vvec = vector<vec<T>>;
 
 class UnionFind{
 private:
-    vector<int> p,s;
+	vec<int> p,s;
 	int cnt;
 public:
 	UnionFind(){}
-	UnionFind(int N){
-		cnt = N;
-		p = s = vector<int>(N,0);
-		for(int i=0;i<N;i++){
-			p[i] = i; s[i] = 1;
-		}
+	UnionFind(int N):cnt(N),s(N,1),p(N){
+		iota(p.begin(),p.end(),0);
 	}
 	int find(int x){
 		if(p[x]==x) return x;
@@ -39,17 +37,19 @@ int main(){
     UnionFind uf1(N),uf2(N);
     for(int i=0;i<K;i++){
         cin >> p >> q;
+		p--; q--;
         uf1.unite(p,q);
     }
     for(int i=0;i<L;i++){
         cin >> r >> s;
+		r--; s--;
         uf2.unite(r,s);
     }
     map<pair<int,int>,int> m;
-    for(int i=1;i<=N;i++){
+    for(int i=0;i<N;i++){
         m[{uf1.find(i),uf2.find(i)}]++;
     }
-    for(int i=1;i<=N;i++){
+    for(int i=0;i<N;i++){
         cout << m[{uf1.find(i),uf2.find(i)}] << (i!=N? " ":"\n");
     }
 }

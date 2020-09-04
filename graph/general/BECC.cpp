@@ -34,7 +34,7 @@ public:
             }
         }
         if(cur==roots.top()){
-            if(prev!=-1) bridge.emplace_back(prev,cur);//根でないなら橋になる
+            if(prev!=-1) bridge.emplace_back(minmax(prev,cur));//根でないなら橋になる
             vec<int> bcc;
             while(true){
                 int node = S.top(); S.pop(); inS[node] = false;//nodeを捨てる

@@ -1,9 +1,70 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
-template<typename T,typename U> using P = pair<T,U>;
-template<class T> using vec = vector<T>;
-template<class T> using vvec = vector<vec<T>>;
+template <class T, class U> using Pa = pair<T, U>;
+template <class T> using vec = vector<T>;
+template <class T> using vvec = vector<vec<T>>;
+
+template<typename T>
+class MonotoneCHT{
+private:
+    struct line{
+        T a,b;
+        line(T a,T b):a(a),b(b){}
+        bool operator<(const line& r)const{
+            return (a!=r.a? a<r.a:b<r.b);
+        }
+        bool operator>(const line& r)const{
+            return (a!=r.a? a>r.a:b>r.b);
+        } 
+    };
+    //直線群
+    vector<line> lines;
+    //単調性があるか
+    bool isMonotonicX;
+    function<bool(T l, T r)> comp;
+
+public:
+    MonotoneCHT(bool flagX,function<bool(T l, T r)> compFunc)
+                :isMonotonicX(flagX),comp(compFunc){
+//                    lines.emplace_back(0,0);
+    }
+    
+    //maxのときは不等号の向きが逆！
+    bool check(line l1,line l2,line l3){
+        if(l1<l3) swap(l1,l3);
+        return (long double) (l3.b-l2.b)*(l2.a-l1.a)<=(long double) (l2.b-l1.b)*(l3.a-l2.a);
+    }
+
+    void add(T a,T b){
+        line l(a,b);
+        while(lines.size()>=2 && check(*(lines.end()-2),lines.back(),l)) lines.pop_back();
+        lines.emplace_back(l);
+    }
+
+    T f(int i,T x){
+        return lines[i].a*x+lines[i].b;
+    }
+
+    T f(line l,T x){
+        return l.a*x+l.b;
+    }
+    //最小値/最大値を返す
+    T get(T x){
+        if(isMonotonicX){
+            static int head = 0;
+            while(lines.size()-head>=2 && comp(f(head, x), f(head + 1, x))) head++;
+            return f(head,x);
+        }else{
+            int l = -1,r = lines.size()-1;
+            while(l+1<r){
+                int m = (l+r)/2;
+                (comp(f(m,x),f(m+1,x))? l:r) = m;
+            }
+            return f(r,x);
+        }
+    }
+};
 
 struct edge{
     int to,id;
@@ -17,11 +78,9 @@ public:
     vvec<edge> g;
     vec<int> size;
     vec<int> used;
-    ll ans;
 
     CentroidDecomposition(int N,vvec<edge> tree): N(N),g(tree){
         size = used = vec<int>(N,0);
-        ans = 0;
     }
 
     int calc_size(int cur,int par){
@@ -35,8 +94,8 @@ public:
 
     //tは連結成分の大きさ
     //cur以下のうち、削除して残る最大の部分木の大きさを返す
-    P<int,int> search_centroid(int cur,int par,int cmp_size){
-        P<int,int> res = {1e9,-1};
+    Pa<int,int> search_centroid(int cur,int par,int cmp_size){
+        Pa<int,int> res = {1e9,-1};
         int s = 1,ma = 0;
         for(auto& x:g[cur]){
             if(x.to==par || used[x.to]) continue;
@@ -50,8 +109,6 @@ public:
         return res;
     }
 
-    //テンプレここまで
-
     void dfs(int cur,int par,ll d,vec<ll>& dlist){
         dlist.push_back(d);
         for(auto& e:g[cur]) if(e.to!=par && !used[e.to]){
@@ -59,71 +116,85 @@ public:
         }
     }
 
-    void solve(int v,ll X){
+    int build(int v){
         calc_size(v,-1);
         int centroid = search_centroid(v,-1,size[v]).second;
         used[centroid] = true;
-        vec<ll> d;
-        vvec<ll> ed;
-        vvec<ll> esum;
-        for(auto& e:g[centroid]){
-            if(used[e.to]) continue;
-            vec<ll> d2;
-            dfs(e.to,-1,e.dist,d2);
-            sort(d2.begin(),d2.end());
-            ed.push_back(d2);
-            for(auto& x:d2) d.push_back(x);
-            int si = d2.size();
-            vec<ll> s(si+1);
-            for(int j=0;j<si;j++) s[j+1] = s[j]+d2[j];
-            esum.push_back(s);
-        }
-        if(ed.empty()) return ;
-        int n = d.size();
-        int m = ed.size();
-        sort(d.begin(),d.end());
-        vec<ll> sum(n+1);
-        for(int i=0;i<n;i++) sum[i+1] = sum[i]+d[i];
-        int id = lower_bound(d.begin(),d.end(),X)-d.begin();
-        ans += 2*(sum[id]+(n-id)*X);
-        ll dmin = 1e18;
-        for(auto& e:g[centroid]) if(!used[e.to]){
-            if(e.dist>X) ans -= 2*X;
-            else ans -= 2*e.dist;
-            dmin = min(dmin,e.dist);
-        }
-        for(auto& e:g[centroid]) if(!used[e.to]){
-            ans += 2*min({e.dist,dmin+X,(N-((int) g[e.to].size()+(int) g[centroid].size())>=1? 2*X:(ll) 1e18)});
-        }
-        for(int i=0;i<m;i++){
-            int n2 = ed[i].size();
-            for(auto& x:ed[i]){
-                ll id = lower_bound(d.begin(),d.end(),X-x)-d.begin();
-                ans += id*x+sum[id]+(n-id)*X;
-                ll id2 = lower_bound(ed[i].begin(),ed[i].end(),X-x)-ed[i].begin();
-                ans -= id2*x+esum[i][id2]+(n2-id2)*X;
-            }
-        }
-        for(auto& e:g[centroid]) if(!used[e.to]) solve(e.to,X);
+        return centroid;
     }
-    ll solve(ll X){
-        solve(0,X);
-        return ans/2;
-    }
+
+    void disable(int v){used[v] = true;}
+    bool is_alive(int v){return !used[v];}
 };
-int main(){
+
+struct query{
+    ll v,l;
+    int id;
+};
+
+int main() {
     cin.tie(0);
     ios::sync_with_stdio(false);
-    ll N,X;
-    cin >> N >> X;
-    vvec<edge> tree(N);
+    int N;
+    cin >> N;
+    vvec<edge> g(N);
     for(int i=0;i<N-1;i++){
-        ll a,b,c;
+        int a,b;
+        ll c;
         cin >> a >> b >> c;
         a--; b--;
-        tree[a].push_back(edge(b,c));
-        tree[b].push_back(edge(a,c));
+        g[a].push_back({b,c});
+        g[b].push_back({a,c});
     }
-    CentroidDecomposition C(N,tree);
-    cout << C.solve(X) << endl;
+    vvec<query> L(N);
+    int M;
+    cin >> M;
+    for(int i=0;i<M;i++){
+        int v;
+        ll l;
+        cin >> v >> l;
+        v--;
+        L[v].push_back({v,l,i});
+    }
+    vec<ll> ans(M,0);
+    CentroidDecomposition CD(N,g);
+    queue<int> que;
+    vec<ll> depth(N),sum(N);
+    que.push(0);
+    
+    auto dfs = [&](auto&& self,int cur,int par,ll pval,ll ma,vec<Pa<ll,ll>>& line,vec<query>& Q)->void{
+        ma = max(ma,pval);
+        if(ma==pval) line.emplace_back(pval,sum[cur]-pval*depth[cur]);
+        for(auto& l:L[cur]) Q.emplace_back(l);
+        for(auto& e:g[cur]) if(e.to!=par && CD.is_alive(e.to)){
+            depth[e.to] = depth[cur]+1;
+            sum[e.to] = sum[cur]+e.dist;
+            self(self,e.to,cur,e.dist,ma,line,Q);
+        }
+    };
+
+    while(!que.empty()){
+        int c = CD.build(CD.build(que.front())); que.pop();
+        vec<Pa<ll,ll>> line;
+        vec<query> Q;
+        depth[c] = 0;
+        sum[c] = 0;
+        for(auto& l:L[c]) Q.push_back(l);
+        for(auto& e:g[c]){
+            if(CD.is_alive(e.to)){
+                que.push(e.to);
+                sum[e.to] = e.dist;
+                depth[e.to] = 1;
+                dfs(dfs,e.to,-1,e.dist,-1,line,Q);
+            }
+        }
+        if(line.empty()) continue;
+        sort(line.begin(),line.end());
+        MonotoneCHT<ll> CHT(false,[](ll a,ll b){return a<b;});
+        for(auto& l:line) CHT.add(l.first,l.second);
+        for(auto& q:Q) if(q.l-depth[q.v]>=0){
+            ans[q.id] = max(ans[q.id],sum[q.v]+CHT.get(q.l-depth[q.v]));
+        }
+    }
+    for(auto& x:ans) cout << x << "\n";
 }

@@ -1,9 +1,10 @@
-#include <iostream>
-#include <complex>
-#include <cmath>
-#include <iomanip>
+#include <bits/stdc++.h>
 using namespace std;
-typedef complex<double> xy;
+using ll = long long;
+template<class T,class U> using P = pair<T,U>;
+template<class T> using vec = vector<T>;
+template<class T> using vvec = vector<vec<T>>;
+using xy = complex<double>;
 double eps = 1e-9;
 double dot_product(xy a,xy b) {return (conj(a)*b).real();}
 double cross_product(xy a,xy b) {return (conj(a)*b).imag();}
@@ -27,7 +28,7 @@ bool is_intersected(xy a1, xy a2, xy b1, xy b2){
 }
 
 double dist_ll(xy a1,xy a2,xy b1,xy b2){
-    if(is_intersected(a1,a3,b1,b2)) return 0.0;
+    if(is_intersected(a1,a2,b1,b2)) return 0.0;
     return min({dist_lp(a1,a2,b1),dist_lp(a1,a2,b2),dist_lp(b1,b2,a1),dist_lp(b1,b2,a1)
     ,abs(a1-b1),abs(a1-b2),abs(a2-b1),abs(a2-b2)});   
 }

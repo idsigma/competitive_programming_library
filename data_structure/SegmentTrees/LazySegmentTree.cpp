@@ -25,11 +25,11 @@ struct state{
 };
 auto op = [](state L,state R){
 	return (state){L.sum+R.sum,L.len+R.len};
-}
+};
 auto homo = [](state S,ll x){
 	return (state){S.sum+x*S.len,S.len};
-}
-comp:add
+};
+comp = [](ll x,ll y){return x+y;};
 
 区間update・区間和
 struct state{
@@ -37,11 +37,11 @@ struct state{
 };
 auto op = [](state L,state R){
 	return (state){L.sum+R.sum,L.len+R.len};
-}
+};
 auto homo = [](state S,ll x){
-	return (state){*S.len,S.len};
-}
-comp:in
+	return (state){x*S.len,S.len};
+};
+auto comp = in;
 
 
 
@@ -51,7 +51,8 @@ comp:in
 
 */
 template<typename Monoid,typename OperatorMonoid,typename F,typename G,typename H>
-struct LazySegmentTree {
+class LazySegmentTree {
+private:
 	int sz,height;
 	vec<Monoid> data;
 	vec<OperatorMonoid> lazy;
@@ -60,7 +61,7 @@ struct LazySegmentTree {
 	const H comp;
   	const Monoid e;
 	const OperatorMonoid Oe;
-
+public:
 	LazySegmentTree(int n,const F op,const G homo,const H comp,
 					const Monoid &e,const OperatorMonoid Oe)
 		: op(op),homo(homo),comp(comp),e(e),Oe(Oe) {

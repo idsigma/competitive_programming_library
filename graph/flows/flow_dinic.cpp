@@ -1,17 +1,18 @@
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <string.h>
+#include <bits/stdc++.h>
 using namespace std;
-typedef long long ll;
-ll inf = 1e18;
+using ll = long long;
+template <class T, class U> using Pa = pair<T, U>;
+template <class T> using vec = vector<T>;
+template <class T> using vvec = vector<vec<T>>;
+
+constexpr ll inf = 1e18;
 
 class network_flow{
 private:
 	int N;
 	struct edge{int to; ll cap; int rev; bool is_rev;};
-	vector<vector<edge>> G;
-	vector<int> level,iter;
+	vvec<edge> G;
+	vec<int> level,iter;
 	void bfs(int s){
 		for(int i=0;i<=N;i++) level[i] = -1;
 		queue<int> Q;
@@ -45,8 +46,8 @@ private:
 public:
 	network_flow(int n){
 		N = n;
-		G = vector<vector<edge>>(N+1);
-		level = iter = vector<int>(N+1);
+		G = vvec<edge>(N+1);
+		level = iter = vec<int>(N+1);
 	}
 	void add_edge(int from, int to,ll cap){
 		G[from].push_back((edge){to,cap,(int) G[to].size(),false});

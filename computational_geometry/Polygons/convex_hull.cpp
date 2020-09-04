@@ -1,11 +1,10 @@
-#include <iostream>
-#include <complex>
-#include <cmath>
-#include <iomanip>
-#include <vector>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
-typedef complex<double> xy;
+using ll = long long;
+template<class T,class U> using P = pair<T,U>;
+template<class T> using vec = vector<T>;
+template<class T> using vvec = vector<vec<T>>;
+using xy = complex<double>;
 double eps = 1e-9;
 double dot_product(xy a,xy b) {return (conj(a)*b).real();}
 double cross_product(xy a,xy b) {return (conj(a)*b).imag();}
