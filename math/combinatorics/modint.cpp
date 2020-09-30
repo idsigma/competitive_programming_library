@@ -61,6 +61,9 @@ struct mint {
         mint res(*this);
         return res/=a;
     }
+    bool operator==(const mint a)const{
+        return x==a.x;
+    }
 };
 
 class combination{
